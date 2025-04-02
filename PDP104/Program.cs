@@ -9,6 +9,7 @@ using PDP104.Service;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+/*builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -16,10 +17,15 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     System.Text.Json.Serialization.ReferenceHandler.Preserve;
     options.JsonSerializerOptions.WriteIndented = true;
 });
+});*/
 // Đăng ký ApplicationDbContext với SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add services to the container.
+builder.Services.AddTransient<IWareHousesSvc, WareHouseSvc>();
+builder.Services.AddScoped<IStorageSpacesSvc, StorageSpaceSvc>();
+builder.Services.AddTransient<IServicesSvc, ServicesSvc>();
 builder.Services.AddIdentity<NguoiDung, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -84,6 +90,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+/*builder.Services.AddIdentity<NguoiDung, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();*/
 // Add services to the container.
 builder.Services.AddTransient<IWareHousesSvc, WareHouseSvc>();
 builder.Services.AddScoped<IStorageSpacesSvc, StorageSpaceSvc>();
