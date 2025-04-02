@@ -9,6 +9,7 @@ using PDP104.Service;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+/*builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -16,10 +17,15 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     System.Text.Json.Serialization.ReferenceHandler.Preserve;
     options.JsonSerializerOptions.WriteIndented = true;
 });
+});*/
 // Đăng ký ApplicationDbContext với SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add services to the container.
+builder.Services.AddTransient<IWareHousesSvc, WareHouseSvc>();
+builder.Services.AddScoped<IStorageSpacesSvc, StorageSpaceSvc>();
+builder.Services.AddTransient<IServicesSvc, ServicesSvc>();
 builder.Services.AddIdentity<NguoiDung, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -73,6 +79,21 @@ builder.Services.AddAuthentication(auth =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins("https://localhost:7091")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+
+/*builder.Services.AddIdentity<NguoiDung, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();*/
 // Add services to the container.
 builder.Services.AddTransient<IWareHousesSvc, WareHouseSvc>();
 builder.Services.AddScoped<IStorageSpacesSvc, StorageSpaceSvc>();
@@ -86,7 +107,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors("AllowLocalhost");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
