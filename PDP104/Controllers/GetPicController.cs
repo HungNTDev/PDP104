@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PDP104.Data;
 using System.IO;
 
 namespace PDP104.Controllers
@@ -7,11 +8,35 @@ namespace PDP104.Controllers
     [ApiController]
     public class ImagesController : ControllerBase
     {
+
+            private readonly ApplicationDbContext _context;
+
+            public ImagesController(ApplicationDbContext context)
+            {
+                _context = context;
+            }
+
+        [HttpGet("GetImgForId/{orderId}")]
+        public IActionResult GetImages(int orderId)
+        {
+            var images = _context.StorageOrderImages
+                                 .Where(img => img.StorageOrdersId == orderId)
+                                 .Select(img => Path.GetFileName(img.ImageUrl)) // Trả về chuỗi trực tiếp
+                                 .ToList();
+
+            if (images == null || images.Count == 0)
+                return NotFound("Không tìm thấy hình ảnh nào cho đơn hàng này.");
+
+            return Ok(images); // Danh sách chuỗi
+        }
+
+
+
+
         [HttpGet("{filename}")]
         public IActionResult GetImage(string filename)
         {
-            var filePath = Path.Combine("D:\\fpt poly\\NET1051 - C#5\\ASM\\ASM\\ASMC5\\ASMC5_Sever\\Uploads\\", filename); // Thay 'path_to_your_image_folder' bằng đường dẫn thực tế  
-
+            var filePath = Path.Combine("D:\\fpt poly\\PDP104\\Project_fearure-Dot\\PDP104\\uploads", filename);
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -21,7 +46,6 @@ namespace PDP104.Controllers
             var fileExtension = Path.GetExtension(filename).ToLowerInvariant();
             string contentType;
 
-            // Xác định loại MIME dựa trên phần mở rộng  
             switch (fileExtension)
             {
                 case ".jpg":
@@ -31,15 +55,16 @@ namespace PDP104.Controllers
                 case ".png":
                     contentType = "image/png";
                     break;
-                case ".webp": // Thêm hỗ trợ cho định dạng webp  
+                case ".webp":
                     contentType = "image/webp";
                     break;
                 default:
                     return BadRequest("Unsupported file type.");
             }
 
-            var fileStream = new FileStream(filePath, FileMode.Open);
-            return File(fileStream, contentType); // Hoặc loại ảnh tương ứng  
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(fileBytes, contentType);
         }
+
     }
 }                            
